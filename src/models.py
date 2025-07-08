@@ -29,6 +29,7 @@ class Profile(db.Model):
     user: Mapped["User"] = relationship(back_populates="profile")
 
     posts: Mapped[List["Post"]] = relationship(back_populates="profile")
+    reels: Mapped[List["Reel"]] = relationship(back_populates="profile")
 
 class Post(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -39,15 +40,32 @@ class Post(db.Model):
 
     hashtags: Mapped[List["Hashtag"]] = relationship(secondary="post_hashtag", back_populates="posts")
 
+class Reel(db.Model):
+    id: Mapped[int] = mapped_column(primary_key=True)
+    caption: Mapped[str] = mapped_column(String(200), nullable=True)
+
+    profile_id: Mapped[int] = mapped_column(ForeignKey("profile.id"))
+    profile: Mapped["Profile"] = relationship(back_populates="Reels")
+
+    hashtags: Mapped[List["Hashtag"]] = relationship(secondary="reel_hashtag", back_populates="reels")
+
 class Hashtag(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
     content: Mapped[str] = mapped_column(String(30), nullable=True)
 
     posts: Mapped[List["Post"]] = relationship(secondary="post_hashtag", back_populates="hashtags")
+    reels: Mapped[List["Reel"]] = relationship(secondary="reel_hashtag", back_populates="hashtags")
 
 post_hashtag = Table(
     "post_hashtag",
     db.metadata,
     Column("post_id", ForeignKey("post.id")),
+    Column("hashtag_id", ForeignKey("hashtag.id"))
+)
+
+reel_hashtag = Table(
+    "reel_hashtag",
+    db.metadata,
+    Column("reel_id", ForeignKey("reel.id")),
     Column("hashtag_id", ForeignKey("hashtag.id"))
 )
